@@ -7,15 +7,15 @@ function calculatePoints() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheets()[0];
 
-  for (let i = 2; i < 7; i++) {
-    var drivers = sheet.getRange(2,i,10).getValues();
+  for (let i = 3; i < 8; i++) {
+    var drivers = sheet.getRange(4,i,10).getValues();
 
     let totalPoints = 0;
     for (let j = 0; j < drivers.length; j++) {
       totalPoints += (10-j) * points[drivers[j]];
     }
 
-    var resultCell = sheet.getRange(12,i); 
+    var resultCell = sheet.getRange(3,i); 
     resultCell.setValue(totalPoints);
   }
 }
