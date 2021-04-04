@@ -1,3 +1,7 @@
+const DRIVERS_IN_ROW = 10;
+const POINTS_SHEET_OFFSET = {pointRow: 2, column: 3, driversRow: 3};
+const CALENDAR_SHEET_OFFSET = {row: 2, column: 3};
+
 function calculatePoints() {
   const races = getRaceResults();
   const sheets = SpreadsheetApp.getActiveSpreadsheet().getSheets();
@@ -28,15 +32,17 @@ function calculatePlayerPoints(races, rowsSheet, calendarSheet)
 
 function getDriversFromPlayersRow(raceIndex, playerIndex, rowsSheet, calendarSheet)
 {
-  const rowOffset = (calendarSheet.getRange(2+raceIndex,playerIndex+3).getValues()-1)*10;
-  return rowsSheet.getRange(3+rowOffset,playerIndex+3,10).getValues();
+  const rowOffset = (calendarSheet.getRange(CALENDAR_SHEET_OFFSET.row+raceIndex,
+    CALENDAR_SHEET_OFFSET.column+playerIndex).getValues()-1)*DRIVERS_IN_ROW;
+  return rowsSheet.getRange(POINTS_SHEET_OFFSET.driversRow+rowOffset, 
+    POINTS_SHEET_OFFSET.column+playerIndex,DRIVERS_IN_ROW).getValues();
 }
 
 function calculatePointsFromRace(race, drivers)
 {
   let racePoints = 0;
   for (let j = 0; j < drivers.length; j++) {
-    racePoints += (10-j) * race[drivers[j]];
+    racePoints += (DRIVERS_IN_ROW-j) * race[drivers[j]];
   }
   return racePoints;
 }
@@ -44,7 +50,7 @@ function calculatePointsFromRace(race, drivers)
 function outputPoints(points, outputSheet)
 {
   for (let i = 0; i < points.length; i++) {
-    const resultCell = outputSheet.getRange(2,3+i); 
+    const resultCell = outputSheet.getRange(POINTS_SHEET_OFFSET.pointRow, POINTS_SHEET_OFFSET.column+i); 
     resultCell.setValue(points[i]);
   }
 }
