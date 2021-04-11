@@ -1,13 +1,14 @@
 const PLAYER_COUNT = 5;
 const DRIVERS_IN_ROW = 10;
-const POINTS_SHEET_OFFSETS = {pointRow: 2, column: 3, driversRow: 3};
+const BETS_SHEET_OFFSETS = {pointRow: 2, column: 3, driversRow: 3};
 const CALENDAR_SHEET_OFFSETS = {row: 2, column: 3};
+const POINTS_SHEET_OFFSETS = {row: 2, column: 3};
 const RESULT_URL = "https://ergast.com/api/f1/2021/results.json?limit=400";
 
 function calculatePoints() {
   const races = getRaceResults();
   const sheets = SpreadsheetApp.getActiveSpreadsheet().getSheets();
-  outputPoints(calculatePlayerPoints(races, sheets[0], sheets[1]), sheets[0]);
+  outputPoints(calculatePlayerPoints(races, sheets[0], sheets[1], sheets[2]), sheets[0]);
 }
 
 function getRaceResults()
@@ -18,7 +19,7 @@ function getRaceResults()
     (accumulator, result) => ({ ...accumulator, [result.Driver.code]: result.points }), {}));
 }
 
-function calculatePlayerPoints(races, rowsSheet, calendarSheet)
+function calculatePlayerPoints(races, rowsSheet, calendarSheet, pointsSheet)
 {
   const points = new Array(PLAYER_COUNT).fill(0);
   for (let raceIndex = 0; raceIndex < races.length; raceIndex++)
@@ -26,7 +27,10 @@ function calculatePlayerPoints(races, rowsSheet, calendarSheet)
     for (let playerIndex = 0; playerIndex < points.length; playerIndex++) 
     {
       const drivers = getDriversFromPlayersRow(raceIndex, playerIndex, rowsSheet, calendarSheet);   
-      points[playerIndex] += calculatePointsFromRace(races[raceIndex], drivers);
+      const racePoints = calculatePointsFromRace(races[raceIndex], drivers);     
+      const resultCell = pointsSheet.getRange(POINTS_SHEET_OFFSETS.row+raceIndex, POINTS_SHEET_OFFSETS.column+playerIndex);
+      resultCell.setValue(racePoints);
+      points[playerIndex] += racePoints;
     }
   }
   return points;
@@ -36,8 +40,8 @@ function getDriversFromPlayersRow(raceIndex, playerIndex, rowsSheet, calendarShe
 {
   const rowOffset = (calendarSheet.getRange(CALENDAR_SHEET_OFFSETS.row+raceIndex,
     CALENDAR_SHEET_OFFSETS.column+playerIndex).getValues()-1)*DRIVERS_IN_ROW;
-  return rowsSheet.getRange(POINTS_SHEET_OFFSETS.driversRow+rowOffset, 
-    POINTS_SHEET_OFFSETS.column+playerIndex,DRIVERS_IN_ROW).getValues();
+  return rowsSheet.getRange(BETS_SHEET_OFFSETS.driversRow+rowOffset, 
+    BETS_SHEET_OFFSETS.column+playerIndex,DRIVERS_IN_ROW).getValues();
 }
 
 function calculatePointsFromRace(race, drivers)
@@ -52,7 +56,7 @@ function calculatePointsFromRace(race, drivers)
 function outputPoints(points, outputSheet)
 {
   for (let i = 0; i < points.length; i++) {
-    const resultCell = outputSheet.getRange(POINTS_SHEET_OFFSETS.pointRow, POINTS_SHEET_OFFSETS.column+i); 
+    const resultCell = outputSheet.getRange(BETS_SHEET_OFFSETS.pointRow, BETS_SHEET_OFFSETS.column+i); 
     resultCell.setValue(points[i]);
   }
 }
