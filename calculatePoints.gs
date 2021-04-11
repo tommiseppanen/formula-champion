@@ -2,13 +2,13 @@ const PLAYER_COUNT = 5;
 const DRIVERS_IN_ROW = 10;
 const BETS_SHEET_OFFSETS = {pointRow: 2, column: 3, driversRow: 3};
 const CALENDAR_SHEET_OFFSETS = {row: 2, column: 3};
-const POINTS_SHEET_OFFSETS = {row: 2, column: 3};
+const POINTS_SHEET_OFFSETS = {row: 3, column: 3};
 const RESULT_URL = "https://ergast.com/api/f1/2021/results.json?limit=400";
 
 function calculatePoints() {
   const races = getRaceResults();
   const sheets = SpreadsheetApp.getActiveSpreadsheet().getSheets();
-  outputPoints(calculatePlayerPoints(races, sheets[0], sheets[1], sheets[2]), sheets[0]);
+  calculatePlayerPoints(races, sheets[0], sheets[1], sheets[2]);
 }
 
 function getRaceResults()
@@ -21,19 +21,15 @@ function getRaceResults()
 
 function calculatePlayerPoints(races, rowsSheet, calendarSheet, pointsSheet)
 {
-  const points = new Array(PLAYER_COUNT).fill(0);
   for (let raceIndex = 0; raceIndex < races.length; raceIndex++)
   {
-    for (let playerIndex = 0; playerIndex < points.length; playerIndex++) 
+    for (let playerIndex = 0; playerIndex < 5; playerIndex++) 
     {
       const drivers = getDriversFromPlayersRow(raceIndex, playerIndex, rowsSheet, calendarSheet);   
       const racePoints = calculatePointsFromRace(races[raceIndex], drivers);     
-      const resultCell = pointsSheet.getRange(POINTS_SHEET_OFFSETS.row+raceIndex, POINTS_SHEET_OFFSETS.column+playerIndex);
-      resultCell.setValue(racePoints);
-      points[playerIndex] += racePoints;
+      outputRacePoints(racePoints, raceIndex, playerIndex, pointsSheet);
     }
   }
-  return points;
 }
 
 function getDriversFromPlayersRow(raceIndex, playerIndex, rowsSheet, calendarSheet)
@@ -53,10 +49,8 @@ function calculatePointsFromRace(race, drivers)
   return racePoints;
 }
 
-function outputPoints(points, outputSheet)
+function outputRacePoints(racePoints, raceIndex, playerIndex, pointsSheet)
 {
-  for (let i = 0; i < points.length; i++) {
-    const resultCell = outputSheet.getRange(BETS_SHEET_OFFSETS.pointRow, BETS_SHEET_OFFSETS.column+i); 
-    resultCell.setValue(points[i]);
-  }
+  const resultCell = pointsSheet.getRange(POINTS_SHEET_OFFSETS.row+raceIndex, POINTS_SHEET_OFFSETS.column+playerIndex);
+  resultCell.setValue(racePoints);
 }
